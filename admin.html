@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Seminar editor</title>
+<style>
+body{font:16px/1.5 system-ui,sans-serif;max-width:760px;margin:2rem auto;padding:0 1rem;color:#222}
+h1{margin-bottom:.2rem} h2{margin-top:2rem;border-bottom:1px solid #ddd;padding-bottom:.3rem}
+label{display:block;font-weight:600;margin-top:.8rem} small{font-weight:400;color:#666}
+input,textarea{width:100%;font:inherit;padding:.4rem;box-sizing:border-box}
+input[type=checkbox]{width:auto} .row{display:flex;gap:.8rem} .row>div{flex:1}
+button{font:inherit;padding:.5rem 1rem;margin:.8rem .4rem 0 0;cursor:pointer}
+.talk{display:flex;gap:.5rem;align-items:center;padding:.35rem 0;border-bottom:1px solid #eee}
+.talk span{flex:1} .talk button{margin:0;padding:.2rem .6rem} .tag{background:#efcb68;padding:0 .4rem;border-radius:3px;font-size:.8rem}
+.steps{background:#f4f4f0;padding:.6rem 1rem;border-radius:6px}
+</style>
+</head>
+<body>
+<h1>Seminar editor</h1>
+<ol class="steps">
+  <li>Open the current <code>data.js</code>.</li>
+  <li>Add or edit talks below.</li>
+  <li>Download the new <code>data.js</code> and replace the old one on the server.</li>
+</ol>
+<input type="file" id="file" accept=".js" />
+
+<div id="app" hidden>
+  <h2 id="formTitle">Add a talk</h2>
+  <form id="f">
+    <div class="row">
+      <div><label>Date *<input type="date" id="date" required></label></div>
+      <div><label>Start time (IST) *<input type="time" id="time" required value="15:30"></label></div>
+      <div><label>Minutes<input type="number" id="dur" min="15" step="5" value="60"></label></div>
+    </div>
+    <label>Venue<input id="venue" list="venues" value="Ramanujan Hall"></label>
+    <div class="row">
+      <div><label>Speaker *<input id="name" required></label></div>
+      <div><label>Affiliation <small>(optional)</small><input id="aff"></label></div>
+    </div>
+    <label>Topic <small>(pick an existing one or type a new one)</small><input id="topic" list="topics"></label>
+    <label>Title * <small>(LaTeX allowed: $\mathfrak m$)</small><input id="title" required></label>
+    <label>Abstract <small>(leave a blank line between paragraphs)</small><textarea id="abstract" rows="6"></textarea></label>
+    <label>Note <small>(optional, e.g. "Continuation of the preceding talk.")</small><input id="note"></label>
+    <div class="row">
+      <div><label>Slides link<input id="slides" type="url"></label></div>
+      <div><label>Recording link<input id="recording" type="url"></label></div>
+    </div>
+    <label><input type="checkbox" id="isUp"> This is the upcoming talk (shown on the home page)</label>
+    <label id="meetRow" hidden>Online meeting link <small>(optional)</small><input id="meeting" type="url"></label>
+    <button type="submit" id="save">Add talk</button>
+    <button type="button" id="cancel" hidden>Cancel edit</button>
+  </form>
+  <datalist id="venues"></datalist><datalist id="topics"></datalist>
+
+  <h2>Talks</h2>
+  <div id="list"></div>
+  <button id="dl"><b>Download data.js</b></button>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let D = null, head = "", editing = null;
+
+$("file").onchange = async e => {
+  const text = await e.target.files[0].text();
+  const m = text.match(/window\.SEMINAR_DATA\s*=\s*(\{[\s\S]*\})\s*;/);
+  try { D = JSON.parse(m[1]); } catch (err) { alert("That doesn't look like data.js."); return; }
+  head = text.slice(0, m.index);
+  $("app").hidden = false;
+  render();
+};
+
+const all = () => (D.upcomingTalk ? [D.upcomingTalk] : []).concat(D.pastTalks);
+const uniq = k => [...new Set(all().map(t => t[k]).filter(Boolean))].sort();
+const slug = s => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const fill = (id, vals) => $(id).replaceChildren(...vals.map(v => new Option(v)));
+
+function render() {
+  fill("venues", uniq("venue")); fill("topics", uniq("topic"));
+  const list = $("list"); list.replaceChildren();
+  const rows = (D.upcomingTalk ? [[D.upcomingTalk, true]] : []).concat(
+    D.pastTalks.slice().sort((a, b) => b.start.localeCompare(a.start)).map(t => [t, false]));
+  for (const [t, up] of rows) {
+    const r = document.createElement("div"); r.className = "talk";
+    const s = document.createElement("span");
+    s.textContent = t.start.slice(0, 10) + "  " + t.speaker.name + " — " + t.title;
+    if (up) { const g = document.createElement("b"); g.className = "tag"; g.textContent = "upcoming"; r.append(g); }
+    const eb = document.createElement("button"); eb.textContent = "Edit"; eb.onclick = () => edit(t, up);
+    const db = document.createElement("button"); db.textContent = "Delete";
+    db.onclick = () => { if (confirm("Delete this talk?")) { remove(t.id); if (editing === t.id) reset(); render(); } };
+    r.append(s, eb, db); list.append(r);
+  }
+}
+
+function remove(id) {
+  D.pastTalks = D.pastTalks.filter(t => t.id !== id);
+  if (D.upcomingTalk && D.upcomingTalk.id === id) D.upcomingTalk = null;
+}
+
+function edit(t, up) {
+  editing = t.id;
+  $("date").value = t.start.slice(0, 10); $("time").value = t.start.slice(11, 16);
+  $("dur").value = t.durationMins || ""; $("venue").value = t.venue || "";
+  $("name").value = t.speaker.name; $("aff").value = t.speaker.affiliation || "";
+  $("topic").value = t.topic || ""; $("title").value = t.title;
+  $("abstract").value = t.abstract.join("\n\n"); $("note").value = t.note || "";
+  $("slides").value = t.slides || ""; $("recording").value = t.recording || "";
+  $("meeting").value = t.meetingLink || ""; $("isUp").checked = up; toggleMeet();
+  $("formTitle").textContent = "Edit talk"; $("save").textContent = "Save changes"; $("cancel").hidden = false;
+  scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function reset() {
+  editing = null; $("f").reset(); toggleMeet();
+  $("formTitle").textContent = "Add a talk"; $("save").textContent = "Add talk"; $("cancel").hidden = true;
+}
+function toggleMeet() { $("meetRow").hidden = !$("isUp").checked; }
+$("isUp").onchange = toggleMeet; $("cancel").onclick = reset;
+
+$("f").onsubmit = e => {
+  e.preventDefault();
+  const v = id => $(id).value.trim();
+  const talk = {
+    id: editing || v("date") + "-" + slug(v("name")),
+    start: v("date") + "T" + v("time") + ":00+05:30",
+    durationMins: +v("dur") || null,
+    venue: v("venue"),
+    speaker: { name: v("name"), affiliation: v("aff") },
+    topic: v("topic"), title: v("title"),
+    abstract: v("abstract").split(/\n\s*\n/).map(s => s.trim()).filter(Boolean),
+    note: v("note"), slides: v("slides") || null, recording: v("recording") || null
+  };
+  remove(talk.id);
+  if ($("isUp").checked) {
+    talk.meetingLink = v("meeting") || null;
+    const old = D.upcomingTalk;   // a previous upcoming talk moves into the archive
+    if (old && !D.pastTalks.some(t => t.id === old.id)) D.pastTalks.push(old);
+    D.upcomingTalk = talk;
+  } else {
+    D.pastTalks.push(talk);
+  }
+  D.pastTalks.sort((a, b) => b.start.localeCompare(a.start));
+  reset(); render();
+};
+
+$("dl").onclick = () => {
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  D.lastUpdated = d.getFullYear() + "-" + p(d.getMonth() + 1) + "-" + p(d.getDate());
+  const out = head + "window.SEMINAR_DATA = " + JSON.stringify(D, null, 2) + ";\n";
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([out], { type: "text/javascript" }));
+  a.download = "data.js"; a.click();
+};
+</script>
+</body>
+</html>

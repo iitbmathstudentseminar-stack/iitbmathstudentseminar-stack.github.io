@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+<title>Mathematics Student Seminar, IIT Bombay</title>
+<meta name="description" content="Student-run mathematics seminar at IIT Bombay. Explore the archive of past seminar announcements." />
+<meta name="author" content="Mathematics Student Seminar, IIT Bombay" />
+<meta name="theme-color" content="#2a3a31" />
+<link rel="canonical" href="https://math.iitb.ac.in/student-seminar/" />
+
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Mathematics Student Seminar, IIT Bombay" />
+<meta property="og:title" content="Mathematics Student Seminar, IIT Bombay" />
+<meta property="og:description" content="Student-run mathematics seminar at IIT Bombay. Explore the archive of past seminar announcements." />
+<meta property="og:url" content="https://math.iitb.ac.in/student-seminar/" />
+<meta name="twitter:card" content="summary" />
+<meta name="twitter:title" content="Mathematics Student Seminar, IIT Bombay" />
+<meta name="twitter:description" content="Student-run mathematics seminar at IIT Bombay. Explore the archive of past seminar announcements." />
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&family=Source+Sans+3:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['$$', '$$'], ['\\[', '\\]']],
+      processEscapes: true
+    },
+    options: {
+      skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+    },
+    startup: { typeset: false }
+  };
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-chtml.js"></script>
+
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<div class="board-frame">
+  <div class="board-surface">
+
+    <header class="site-header">
+      <div class="wrap">
+        <a href="#home" class="brand" id="brand-link">
+          <span>
+            <b>IITB Mathematics Student Seminar</b>
+            <small>Department of Mathematics, IIT Bombay</small>
+          </span>
+        </a>
+        <nav aria-label="Primary">
+          <button type="button" class="nav-link" data-tab="home">Home</button>
+          <button type="button" class="nav-link" data-tab="past-talks">Past Talks</button>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main" class="wrap">
+
+      <section id="view-home" class="tab-section" aria-labelledby="home-h1">
+        <div class="page-head">
+          <h1 id="home-h1" tabindex="-1">Mathematics Student Seminar</h1>
+          <p class="lede">A student-run seminar of the Department of Mathematics at IIT Bombay.</p>
+        </div>
+
+        <article id="upcoming-card" aria-labelledby="upcoming-heading" hidden>
+          <div class="board">
+            <div>
+              <h2 id="upcoming-heading" class="board-label">Upcoming talk</h2>
+              <h3 id="up-title"></h3>
+              <div id="up-speaker" class="speaker"></div>
+              <div id="up-abstract"></div>
+              <div class="up-actions">
+                <a id="add-to-calendar" class="ics-link" href="#" download="iitb-math-seminar.ics">Add to calendar (.ics)</a>
+                <a id="join-online" class="join-link" href="" target="_blank" rel="noopener noreferrer" hidden>Join online</a>
+              </div>
+            </div>
+            <dl class="when">
+              <div><dt>Date</dt><dd><time id="up-date"></time></dd></div>
+              <div><dt>Time</dt><dd id="up-time"></dd></div>
+              <div><dt>Venue</dt><dd id="up-venue"></dd></div>
+              <div id="up-online-row" hidden>
+                <dt>Online</dt>
+                <dd><a id="up-online" href="" target="_blank" rel="noopener noreferrer"></a></dd>
+              </div>
+            </dl>
+          </div>
+        </article>
+
+        <div id="no-talk" hidden>
+          <strong>No talk is currently scheduled.</strong>
+          No upcoming announcement is included in the available records. Please check back for the next seminar.
+        </div>
+
+        <div class="join">
+          <div>
+            <h2>Let us know if you wish to give a talk</h2>
+            <p>We welcome expository talks, thesis overviews, and practice conference presentations from Ph.D., M.Sc., and B.S. students across all areas of mathematics. Talks are typically 45–50 minutes long and aimed at a general graduate-student audience.</p>
+            <div class="contact-actions">
+              <button type="button" id="toggle-proposal-btn" class="btn" aria-expanded="false" aria-controls="inline-proposal-box">Propose a Talk</button>
+              <a id="email-organizers" class="btn btn-outline" href="#">Email the Organizers</a>
+            </div>
+            <p class="field-hint" style="margin-top: 10px">For general enquiries or to propose a talk by email, contact all three organizers directly.</p>
+          </div>
+          <div class="orgs">
+            <h3>Student organizers</h3>
+            <div id="organizers-grid"></div>
+          </div>
+        </div>
+
+        <div id="inline-proposal-box" class="proposal" hidden>
+          <form id="speaker-form" novalidate>
+            <div class="grid2">
+              <div>
+                <label for="sp-name">Your name *</label>
+                <input id="sp-name" name="name" type="text" required autocomplete="name" placeholder="e.g., Aarav Kulkarni" />
+              </div>
+              <div>
+                <label for="sp-email">IITB email *</label>
+                <input id="sp-email" name="email" type="email" required autocomplete="email"
+                       pattern="^[^@\s]+@iitb\.ac\.in$"
+                       title="Please use your @iitb.ac.in address"
+                       placeholder="rollno@iitb.ac.in" />
+              </div>
+            </div>
+            <div class="grid2">
+              <div>
+                <label for="sp-program">Program</label>
+                <input id="sp-program" name="program" type="text" placeholder="e.g., Ph.D. / M.Sc. / B.S." />
+              </div>
+              <div>
+                <label for="sp-date">Preferred date</label>
+                <input id="sp-date" name="date" type="date" />
+                <small class="field-hint">The date and time will be confirmed by the seminar team.</small>
+              </div>
+            </div>
+            <div>
+              <label for="sp-title">Proposed talk title *</label>
+              <input id="sp-title" name="title" type="text" required placeholder="Enter talk title (LaTeX $...$ supported)" />
+            </div>
+            <div>
+              <label for="sp-abstract">Brief abstract *</label>
+              <textarea id="sp-abstract" name="abstract" rows="4" required placeholder="A short paragraph describing your talk..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn">Prepare Email to Organizers</button>
+              <button type="button" class="btn-quiet" id="cancel-proposal-btn">Cancel</button>
+            </div>
+          </form>
+
+          <div id="proposal-status" class="status" role="status" aria-live="polite" hidden>
+            <p id="proposal-status-text"></p>
+            <div class="links">
+              <a id="proposal-mailto" href="#">Open in Email Client</a>
+              <button type="button" id="copy-proposal-btn">Copy formatted text</button>
+              <button type="button" id="reset-proposal-btn">Start over</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="view-past-talks" class="tab-section" aria-labelledby="past-h1" hidden>
+        <div class="page-head sub-head">
+          <h1 id="past-h1" tabindex="-1">Past Talks</h1>
+          <p class="lede">Archive of announced seminar sessions, based on the available email records. Select any entry for its details and abstract, where available.</p>
+        </div>
+
+        <label for="talk-filter" class="visually-hidden">Filter past talks by speaker, title, topic, or abstract</label>
+        <input id="talk-filter" type="search" autocomplete="off" placeholder="Filter by speaker, title, or topic…" />
+
+        <div class="archive-controls">
+          <label for="year-filter">Year</label>
+          <select id="year-filter"><option value="">All years</option></select>
+          <span id="archive-count" role="status" aria-live="polite"></span>
+        </div>
+        <div class="talks">
+          <div class="talks-head" aria-hidden="true">
+            <span>Date</span><span>Speaker</span><span>Title</span><span></span>
+          </div>
+          <div id="past-talks-container"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>Department of Mathematics, Indian Institute of Technology Bombay, Powai, Mumbai 400076</span>
+        <span>Last updated <span id="last-updated">—</span></span>
+      </div>
+    </footer>
+
+  </div><!-- /board-surface -->
+
+  <div class="chalk-tray" aria-hidden="true">
+    <span class="chalk"></span>
+    <span class="chalk"></span>
+    <span class="chalk"></span>
+  </div>
+
+</div><!-- /board-frame -->
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
