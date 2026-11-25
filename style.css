@@ -1,13 +1,13 @@
 :root {
-  --wall: #14110e;
+  --wall: #d6cfbf;
   --wood-light: #7a5a3b;
   --wood: #5d4630;
   --wood-dark: #3e2e1f;
   --frame: 18px;
 
-  --board: #2a3a31;
+  --board: #222426;
   --chalk: #e9e6da;
-  --chalk-dim: #a8b0a6;
+  --chalk-dim: #b2b2ac;
   --rule: rgba(233, 230, 218, .16);
   --line: rgba(233, 230, 218, .3);
   --yellow: #efcb68;
@@ -15,6 +15,8 @@
   --meet: #7fd68a;
 
   --noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .055 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+
+  --chalk-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='40'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.1' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .33 0 0 0 0 .3 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 
   --sans: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
   --chalk-font: "Newsreader", Georgia, Cambria, serif;
@@ -25,15 +27,15 @@
 }
 
 * { box-sizing: border-box; }
-html { color-scheme: dark; scroll-behavior: smooth; }
+html { color-scheme: light; scroll-behavior: smooth; }
 
 body {
   margin: 0;
   padding: 40px 20px 68px;
   min-height: 100vh;
   background:
-    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255, 240, 220, .04), transparent 70%),
-    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(0, 0, 0, .55), transparent 70%),
+    radial-gradient(ellipse 90% 60% at 50% 0%, rgba(255, 255, 255, .5), transparent 70%),
+    radial-gradient(ellipse 60% 40% at 50% 100%, rgba(70, 52, 34, .24), transparent 70%),
     var(--wall);
   color: var(--chalk);
   font: 400 16px/1.65 var(--sans);
@@ -87,8 +89,8 @@ a:hover { text-decoration-color: var(--yellow); }
       var(--wood-dark) 60%,
       var(--wood) 100%);
   box-shadow:
-    0 40px 80px -30px rgba(0, 0, 0, .85),
-    0 16px 32px -16px rgba(0, 0, 0, .6),
+    0 40px 70px -30px rgba(40, 28, 16, .55),
+    0 16px 28px -16px rgba(40, 28, 16, .45),
     inset 0 0 0 1px rgba(0, 0, 0, .4),
     inset 0 1px 0 rgba(255, 255, 255, .08),
     inset 0 -1px 0 rgba(0, 0, 0, .35);
@@ -96,6 +98,8 @@ a:hover { text-decoration-color: var(--yellow); }
 
 .board-surface {
   position: relative;
+  isolation: isolate;
+  color-scheme: dark;
   overflow: hidden;
   border-radius: 2px;
   min-height: calc(100vh - 40px - 68px - 2 * var(--frame));
@@ -104,9 +108,10 @@ a:hover { text-decoration-color: var(--yellow); }
   background:
     var(--noise),
     linear-gradient(0deg, rgba(233, 230, 218, .05), transparent 18%),
-    radial-gradient(ellipse 42% 30% at 28% 42%, rgba(210, 220, 200, .04), transparent 72%),
-    radial-gradient(ellipse 38% 28% at 74% 58%, rgba(210, 220, 200, .032), transparent 72%),
-    radial-gradient(ellipse 30% 22% at 55% 88%, rgba(210, 220, 200, .045), transparent 72%),
+    linear-gradient(168deg, transparent 28%, rgba(228, 228, 222, .03) 46%, transparent 64%),
+    radial-gradient(ellipse 42% 30% at 28% 42%, rgba(228, 228, 222, 0.056), transparent 72%),
+    radial-gradient(ellipse 38% 28% at 74% 58%, rgba(228, 228, 222, 0.045), transparent 72%),
+    radial-gradient(ellipse 30% 22% at 55% 88%, rgba(228, 228, 222, 0.063), transparent 72%),
     radial-gradient(ellipse 110% 100% at 50% 50%, transparent 55%, rgba(0, 0, 0, .34) 100%),
     var(--board);
   box-shadow:
@@ -115,15 +120,15 @@ a:hover { text-decoration-color: var(--yellow); }
     inset 0 1px 0 rgba(255, 255, 255, .03);
 }
 
-.board-surface > main { flex: 1; }
+.board-surface > main { flex: 1; width: 100%; }
 
 /* ---- Chalk tray (sits at bottom of the frame) ---- */
 .chalk-tray {
   position: absolute;
   left: 24px; right: 24px;
-  bottom: -22px;
-  height: 22px;
-  padding: 0 16px 4px;
+  bottom: -26px;
+  height: 26px;
+  padding: 0 16px 6px;
   display: flex;
   align-items: flex-end;
   gap: 14px;
@@ -147,22 +152,43 @@ a:hover { text-decoration-color: var(--yellow); }
   z-index: 3;
 }
 .chalk {
+  position: relative;
   display: block;
-  height: 9px;
-  border-radius: 2px;
-  background: linear-gradient(180deg, #f1eee1 0%, #cfccbf 60%, #b0ad9f 100%);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, .55),
-    inset 0 1px 0 rgba(255, 255, 255, .35);
+  height: 11px;
+  border-radius: 3px;
   margin-bottom: 2px;
   transform-origin: bottom left;
+  background:
+    var(--chalk-grain),
+    linear-gradient(180deg, #ffffff 0%, #f6f4ec 16%, #e7e4d9 52%, #cbc8ba 86%, #b4b1a3 100%);
+  box-shadow:
+    0 1px 1px rgba(0, 0, 0, .55),
+    0 4px 5px -2px rgba(0, 0, 0, .5),
+    inset 0 1px 0 rgba(255, 255, 255, .95),
+    inset 0 -1px 1px rgba(0, 0, 0, .14);
 }
-.chalk:nth-child(1) { width: 48px; transform: rotate(-3deg); }
-.chalk:nth-child(2) {
-  width: 34px; transform: rotate(4deg);
-  background: linear-gradient(180deg, #f2d57c 0%, #d4b45e 60%, #b39540 100%);
+.chalk::after {            /* flat end face of the cylinder */
+  content: "";
+  position: absolute; right: 0; top: 0; bottom: 0; width: 4px;
+  border-radius: 0 3px 3px 0;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, .14));
 }
-.chalk:nth-child(3) { width: 42px; transform: rotate(-1deg); }
+.chalk:nth-child(1) { width: 96px; transform: rotate(-2deg); }
+.chalk:nth-child(1)::before {   /* printed brand mark */
+  content: "HAGOROMO";
+  position: absolute; left: 22px; top: 50%;
+  transform: translateY(-50%);
+  font: 600 5.5px/1 var(--sans);
+  letter-spacing: .2em;
+  color: rgba(60, 60, 58, .5);
+}
+.chalk:nth-child(2) { width: 62px; transform: rotate(3deg); border-radius: 6px 3px 3px 5px; }
+.chalk:nth-child(3) {
+  width: 40px; transform: rotate(-1deg); border-radius: 1px 3px 3px 4px;
+  background:
+    var(--chalk-grain),
+    linear-gradient(180deg, #fff6c4 0%, #f6e08a 18%, #ecd06a 55%, #d2b64f 88%, #b99c3c 100%);
+}
 
 /* ---- Layout ---- */
 .wrap { max-width: 960px; margin: 0 auto; padding: 0 44px; }
@@ -451,7 +477,7 @@ input:user-invalid:focus, textarea:user-invalid:focus { outline-color: var(--dan
 /* ---- Past talks ---- */
 .archive-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: -12px 0 24px; color: var(--chalk-dim); }
 .archive-controls label { margin: 0; }
-#year-filter { color: var(--chalk); background: var(--board); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font: inherit; }
+#year-filter, #page-size { color: var(--chalk); background: var(--board); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font: inherit; }
 #archive-count { margin-left: auto; font-variant-numeric: tabular-nums; }
 .abs .archive-meta { color: var(--chalk-dim); font-size: 14px; margin-bottom: 12px; }
 .abs .archive-note { color: var(--chalk-dim); font-style: italic; }
@@ -460,7 +486,7 @@ input:user-invalid:focus, textarea:user-invalid:focus { outline-color: var(--dan
   margin-bottom: 28px;
   padding: 12px 14px;
 }
-.talks { border-top: 1px solid var(--line); }
+.talks { margin-top: 4px; width: 100%; }
 
 .talks-head, .talk-btn {
   display: grid;
@@ -474,11 +500,11 @@ input:user-invalid:focus, textarea:user-invalid:focus { outline-color: var(--dan
   border-bottom: 1px solid var(--rule);
 }
 
-#past-talks-container > .talk {
+.sb-panel > .talk {
   border-bottom: 1px solid var(--rule);
   transition: background .15s;
 }
-#past-talks-container > .talk:hover { background: rgba(255, 255, 255, .03); }
+.sb-panel > .talk:hover { background: rgba(255, 255, 255, .03); }
 
 .talk-btn {
   width: 100%;
@@ -590,9 +616,174 @@ footer .wrap {
   .board-frame { box-shadow: none; background: none; padding: 0; }
   .board-surface { background: none; box-shadow: none; min-height: 0; }
   .site-header, footer, .join, .proposal, #talk-filter, .chev,
-  .up-actions, .skip-link, .chalk-tray { display: none !important; }
+  .up-actions, .skip-link, .chalk-tray, .ghost, .pager, .wall-eqs { display: none !important; }
   .board, .talks, .talk, .abs, #upcoming-card { border-color: #999 !important; }
   .abs { margin-left: 0 !important; }
   a { color: #000; }
   h1, h2, h3 { color: #000 !important; }
 }
+
+/* ---- Ghost equations and eraser smears (behind the content) ---- */
+.ghost { position: absolute; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+.smear {
+  position: absolute; left: var(--x); top: var(--y); width: var(--w); height: var(--h);
+  transform: rotate(var(--r));
+  background: repeating-linear-gradient(var(--a), rgba(235, 235, 228, .075) 0 5px, rgba(235, 235, 228, .02) 5px 11px, rgba(235, 235, 228, .06) 11px 14px);
+  filter: blur(3px);
+  -webkit-mask-image: radial-gradient(ellipse at center, #000 15%, transparent 68%);
+          mask-image: radial-gradient(ellipse at center, #000 15%, transparent 68%);
+}
+
+/* ---- Sliding blackboard for the past-talks pages ---- */
+.sb { position: relative; padding: 9px 0; }
+.sb::before, .sb::after {
+  content: ""; position: absolute; left: -8px; right: -8px; height: 9px; z-index: 3;
+  border-radius: 4px;
+  background: linear-gradient(180deg, #cfcfc8 0%, #8f8f89 40%, #5c5c57 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+.sb::before { top: 0; }
+.sb::after { bottom: 0; }
+#past-talks-container { position: relative; overflow: hidden; }
+.sb-panel {
+  box-sizing: border-box;
+  padding: 4px 24px 10px;
+  border: 8px solid #5a4330;
+  border-image: linear-gradient(135deg, #7d5d40, #4b3626 50%, #6d4f35) 8;
+  background:
+    var(--noise),
+    linear-gradient(0deg, rgba(233, 230, 218, .05), transparent 20%),
+    radial-gradient(ellipse 50% 40% at 30% 40%, rgba(228, 228, 222, .05), transparent 70%),
+    #2b2d2f;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, .6),
+    inset 0 0 36px rgba(0, 0, 0, .38),
+    inset 0 2px 0 rgba(255, 255, 255, .04);
+}
+.sb-out, .sb-in { position: absolute; top: 0; left: 0; width: 100%; }
+
+.pager { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-top: 22px; }
+.pager .btn[disabled] { opacity: .35; cursor: default; }
+#pg-status { color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { .sb-panel { padding: 2px 14px 8px; border-width: 6px; } }
+@media (prefers-reduced-motion: reduce) { .eq { transition: none; } }
+
+/* ---- Equations written on the wall, either side of the board ---- */
+body { position: relative; }
+.board-frame { z-index: 1; }
+.wall-eqs { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.eq {
+  position: absolute; top: var(--y);
+  font-size: calc(var(--s) * clamp(11px, calc((100vw - 1080px) / 18), 26px));
+  white-space: nowrap;
+  color: rgba(74, 58, 40, .22);
+  transform: rotate(var(--r));
+  filter: blur(.5px);
+  opacity: 0; transition: opacity 1.4s ease;
+  -webkit-mask-image: linear-gradient(100deg, #000 0 35%, rgba(0, 0, 0, .35) 55%, #000 78%);
+          mask-image: linear-gradient(100deg, #000 0 35%, rgba(0, 0, 0, .35) 55%, #000 78%);
+}
+.eq.l { right: calc(50% + 510px); }   /* ends tucked 30px behind the board edge */
+.eq.r { left: calc(50% + 510px); }
+.wall-eqs.on .eq { opacity: 1; }
+@media (max-width: 1239px) { .wall-eqs { display: none; } }
+
+/* ---- Real wood: generated grain, mitred frame corners, varnish ---- */
+:root { --wood-h: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='900' height='180'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.0035 .12' numOctaves='5' seed='11' stitchTiles='stitch' result='a'/%3E%3CfeColorMatrix in='a' type='matrix' values='0 0 0 0 .19 0 0 0 0 .10 0 0 0 0 .045 -1.9 0 0 0 1.12' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.002 .035' numOctaves='3' seed='4' stitchTiles='stitch' result='b'/%3E%3CfeColorMatrix in='b' type='matrix' values='0 0 0 0 .86 0 0 0 0 .62 0 0 0 0 .38 0 1.5 0 0 -.55' result='l'/%3E%3CfeMerge%3E%3CfeMergeNode in='l'/%3E%3CfeMergeNode in='d'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E"); --wood-v: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='900'%3E%3Cfilter id='f' x='0' y='0' width='100%25' height='100%25' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.12 .0035' numOctaves='5' seed='23' stitchTiles='stitch' result='a'/%3E%3CfeColorMatrix in='a' type='matrix' values='0 0 0 0 .19 0 0 0 0 .10 0 0 0 0 .045 -1.9 0 0 0 1.12' result='d'/%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.035 .002' numOctaves='3' seed='9' stitchTiles='stitch' result='b'/%3E%3CfeColorMatrix in='b' type='matrix' values='0 0 0 0 .86 0 0 0 0 .62 0 0 0 0 .38 0 1.5 0 0 -.55' result='l'/%3E%3CfeMerge%3E%3CfeMergeNode in='l'/%3E%3CfeMergeNode in='d'/%3E%3C/feMerge%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E"); --wood-base: linear-gradient(180deg, #a5743f 0%, #86592f 45%, #6d4726 100%); }
+
+.board-frame {
+  background:
+    linear-gradient(180deg, rgba(255, 238, 205, .22) 0, transparent 35%, rgba(0, 0, 0, .2) 100%),
+    var(--wood-h),
+    var(--wood-base);
+  box-shadow:
+    0 40px 70px -30px rgba(40, 28, 16, .55),
+    0 16px 28px -16px rgba(40, 28, 16, .45),
+    inset 0 0 0 1px rgba(0, 0, 0, .5),
+    inset 0 1px 0 rgba(255, 236, 200, .4),
+    inset 1px 0 0 rgba(255, 236, 200, .12),
+    inset 0 -2px 3px rgba(0, 0, 0, .35);
+}
+/* side members run vertically; the diagonal clip makes the mitre joints */
+.board-frame::before, .board-frame::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: var(--frame);
+  background:
+    linear-gradient(90deg, rgba(255, 238, 205, .16) 0, transparent 40%, rgba(0, 0, 0, .22) 100%),
+    var(--wood-v),
+    linear-gradient(90deg, #98693a 0%, #7d5430 50%, #684424 100%);
+}
+.board-frame::before { left: 0; border-radius: 6px 0 0 6px;
+  clip-path: polygon(0 0, 100% var(--frame), 100% calc(100% - var(--frame)), 0 100%); }
+.board-frame::after { right: 0; border-radius: 0 6px 6px 0;
+  clip-path: polygon(0 var(--frame), 100% 0, 100% 100%, 0 calc(100% - var(--frame))); }
+.board-surface {
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, .7),
+    0 0 0 2px rgba(255, 226, 184, .14),
+    0 2px 5px 2px rgba(0, 0, 0, .35),
+    inset 0 0 0 1px rgba(0, 0, 0, .55),
+    inset 0 0 48px rgba(0, 0, 0, .28),
+    inset 0 1px 0 rgba(255, 255, 255, .03);
+}
+
+/* chalk ledge: lit top surface, darker front lip, a little chalk dust */
+.chalk-tray {
+  background:
+    linear-gradient(180deg, transparent calc(100% - 6px), rgba(0, 0, 0, .3) calc(100% - 6px)),
+    radial-gradient(ellipse 60px 5px at 70px 62%, rgba(255, 255, 255, .22), transparent),
+    radial-gradient(ellipse 90px 4px at 55% 48%, rgba(255, 255, 255, .1), transparent),
+    linear-gradient(180deg, rgba(255, 238, 205, .24) 0, transparent 40%),
+    var(--wood-h) 130px 0,
+    var(--wood-base);
+  box-shadow:
+    0 8px 14px -4px rgba(0, 0, 0, .55),
+    inset 0 1px 0 rgba(255, 236, 200, .5),
+    inset 0 -1px 0 rgba(0, 0, 0, .5),
+    inset 0 0 0 1px rgba(0, 0, 0, .25);
+}
+
+/* sliding-board frames: same wood, as the panel border */
+.sb-panel {
+  border: 8px solid transparent;
+  border-image: none;
+  background:
+    var(--noise) padding-box,
+    linear-gradient(0deg, rgba(233, 230, 218, .05), transparent 20%) padding-box,
+    radial-gradient(ellipse 50% 40% at 30% 40%, rgba(228, 228, 222, .05), transparent 70%) padding-box,
+    linear-gradient(#2b2d2f, #2b2d2f) padding-box,
+    linear-gradient(180deg, rgba(255, 238, 205, .2) 0, transparent 40%) border-box,
+    var(--wood-h) border-box,
+    var(--wood-base) border-box;
+}
+
+/* panel side members: vertical grain with mitred corners (the top and bottom use the border's horizontal grain) */
+.sb-panel:not(.sb-in):not(.sb-out) { position: relative; }
+.sb-panel::before, .sb-panel::after {
+  content: ""; position: absolute; top: -8px; bottom: -8px; width: 8px; z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(255, 238, 205, .16) 0, transparent 40%, rgba(0, 0, 0, .25) 100%),
+    var(--wood-v),
+    linear-gradient(90deg, #98693a 0%, #7d5430 50%, #684424 100%);
+}
+.sb-panel::before { left: -8px; clip-path: polygon(0 0, 100% 8px, 100% calc(100% - 8px), 0 100%); }
+.sb-panel::after { right: -8px; clip-path: polygon(0 8px, 100% 0, 100% 100%, 0 calc(100% - 8px)); }
+@media (max-width: 720px) {
+  .sb-panel::before, .sb-panel::after { top: -6px; bottom: -6px; width: 6px; }
+  .sb-panel::before { left: -6px; clip-path: polygon(0 0, 100% 6px, 100% calc(100% - 6px), 0 100%); }
+  .sb-panel::after { right: -6px; clip-path: polygon(0 6px, 100% 0, 100% 100%, 0 calc(100% - 6px)); }
+}
+
+/* ---- Erratic wall writing: per-equation size, tilt, slant, fade, depth under the board ---- */
+.eq {
+  color: rgba(74, 58, 40, calc(.22 * var(--o, 1)));
+  transform: rotate(var(--r)) skewX(var(--k, 0deg));
+  filter: blur(var(--b, .5px));
+  transition: opacity 1.6s ease var(--t, 0s);
+  -webkit-mask-image: linear-gradient(var(--m, 100deg), #000 0 var(--k1, 35%), rgba(0, 0, 0, .3) calc(var(--k1, 35%) + 20%), #000 80%);
+          mask-image: linear-gradient(var(--m, 100deg), #000 0 var(--k1, 35%), rgba(0, 0, 0, .3) calc(var(--k1, 35%) + 20%), #000 80%);
+}
+.eq.l { right: calc(50% + var(--d, 510px)); }
+.eq.r { left: calc(50% + var(--d, 510px)); }
+.eq.cut::after { content: ""; position: absolute; left: -3%; right: -3%; top: 54%; height: 2px; background: currentColor; transform: rotate(-3deg); border-radius: 2px; }
+.eq.und::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.1em; border-bottom: 2px solid currentColor; transform: rotate(.9deg); border-radius: 50% / 100%; }
+.eq.box { padding: .2em .4em; outline: 1.5px solid currentColor; outline-offset: 2px; border-radius: 4px; }

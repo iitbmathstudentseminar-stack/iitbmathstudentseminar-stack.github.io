@@ -385,33 +385,113 @@ function toggleTalk(id) {
   }
 }
 
-function renderPastTalks() {
+const pageSizeSel = document.getElementById("page-size");
+const pager = document.getElementById("pager");
+const pgPrev = document.getElementById("pg-prev");
+const pgNext = document.getElementById("pg-next");
+const pgStatus = document.getElementById("pg-status");
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+let page = 0;
+let endSlide = null;
+
+function getFiltered() {
   const q = (filterInput.value || "").trim().toLowerCase();
-  const list = getPastTalks()
+  return getPastTalks()
     .sort((a, b) => new Date(b.start) - new Date(a.start))
     .filter(t => (!yearFilter.value || t.start.startsWith(yearFilter.value)) && matchesQuery(t, q));
+}
+const pageSize = () => +pageSizeSel.value || 10;
+function pageOfTalk(id) {
+  const i = getFiltered().findIndex(t => t.id === id);
+  return i < 0 ? 0 : Math.floor(i / pageSize());
+}
 
-  document.getElementById("archive-count").textContent = list.length + " of " + getPastTalks().length + " talks";
-
-  pastContainer.replaceChildren();
-
-  if (list.length === 0) {
+function buildPanel(items) {
+  const panel = document.createElement("div");
+  panel.className = "sb-panel";
+  if (items.length === 0) {
     const empty = document.createElement("div");
     empty.className = "empty";
     empty.setAttribute("role", "status");
     empty.textContent = 'No talks match your filter. Try a speaker name or a topic like "algebra".';
-    pastContainer.appendChild(empty);
-    return;
+    panel.appendChild(empty);
+    return panel;
   }
-
-  for (const talk of list) {
-    pastContainer.appendChild(buildTalkRow(talk, openTalks.has(talk.id)));
+  const head = document.createElement("div");
+  head.className = "talks-head";
+  head.setAttribute("aria-hidden", "true");
+  for (const label of ["Date", "Speaker", "Title", ""]) {
+    const span = document.createElement("span");
+    span.textContent = label;
+    head.appendChild(span);
   }
-  typeset(pastContainer);
+  panel.appendChild(head);
+  for (const talk of items) panel.appendChild(buildTalkRow(talk, openTalks.has(talk.id)));
+  return panel;
 }
 
-filterInput.addEventListener("input", debounce(renderPastTalks, 150));
-yearFilter.addEventListener("change", renderPastTalks);
+/* Slide the next board in along the rail; the old one slides out. dir: 1 = forward, -1 = back, 0 = no animation. */
+function slideTo(panel, dir) {
+  if (endSlide) endSlide();
+  const old = pastContainer.lastElementChild;
+  if (!dir || !old || reducedMotion.matches) {
+    pastContainer.replaceChildren(panel);
+    return;
+  }
+  const h0 = old.offsetHeight;
+  old.classList.add("sb-out");
+  old.inert = true;
+  panel.classList.add("sb-in");
+  pastContainer.style.height = h0 + "px";
+  pastContainer.appendChild(panel);
+  const h1 = panel.offsetHeight;
+  const opts = { duration: 650, easing: "cubic-bezier(.6, 0, .25, 1)", fill: "both" };
+  const anims = [
+    old.animate([{ transform: "translateX(0)" }, { transform: "translateX(" + (-dir * 104) + "%)" }], opts),
+    panel.animate([{ transform: "translateX(" + (dir * 104) + "%)" }, { transform: "translateX(0)" }], opts),
+    pastContainer.animate([{ height: h0 + "px" }, { height: h1 + "px" }], opts)
+  ];
+  endSlide = () => {
+    anims.forEach(a => a.cancel());
+    old.remove();
+    panel.classList.remove("sb-in");
+    pastContainer.style.height = "";
+    endSlide = null;
+  };
+  anims[1].onfinish = () => { if (endSlide) endSlide(); };
+}
+
+function renderPastTalks(opts) {
+  const dir = (opts && opts.dir) || 0;
+  const list = getFiltered();
+  const size = pageSize();
+  const pages = Math.max(1, Math.ceil(list.length / size));
+  page = Math.min(Math.max(page, 0), pages - 1);
+
+  document.getElementById("archive-count").textContent = list.length + " of " + getPastTalks().length + " talks";
+  pager.hidden = pages < 2;
+  pgPrev.disabled = page === 0;
+  pgNext.disabled = page >= pages - 1;
+  pgStatus.textContent = "Page " + (page + 1) + " of " + pages;
+
+  const panel = buildPanel(list.slice(page * size, page * size + size));
+  slideTo(panel, dir);
+  typeset(panel);
+}
+
+function resetAndRender() { page = 0; renderPastTalks(); }
+function turnPage(dir) {
+  page += dir;
+  renderPastTalks({ dir });
+  const top = pastContainer.parentElement.getBoundingClientRect().top;
+  if (top < 0) window.scrollBy({ top: top - 90, behavior: reducedMotion.matches ? "auto" : "smooth" });
+}
+pgPrev.addEventListener("click", () => turnPage(-1));
+pgNext.addEventListener("click", () => turnPage(1));
+pageSizeSel.addEventListener("change", resetAndRender);
+
+filterInput.addEventListener("input", debounce(resetAndRender, 150));
+yearFilter.addEventListener("change", resetAndRender);
 
 /* ---- Hash handling ---- */
 function applyHash() {
@@ -422,6 +502,7 @@ function applyHash() {
     if (!document.getElementById("talk-abs-" + id)) {
       filterInput.value = "";
       yearFilter.value = "";
+      page = pageOfTalk(id);
       renderPastTalks();
     }
     openTalks.add(id);
@@ -616,6 +697,12 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPastTalks();
   applyHash();
   typeset(document.body);
+  const ghost = document.querySelector(".wall-eqs");
+  (function reveal(n) {
+    if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
+      MathJax.startup.promise.then(() => MathJax.typesetPromise([ghost])).then(() => ghost.classList.add("on")).catch(() => {});
+    } else if (n < 200) setTimeout(() => reveal(n + 1), 50);
+  })(0);
 });
 
 document.addEventListener("visibilitychange", () => {
