@@ -682,6 +682,103 @@ function buildYearOptions() {
   yearFilter.replaceChildren(new Option("All years", ""), ...years.map(y => new Option(y, y)));
 }
 
+
+/* ---- Equations written on the wall: a fresh random selection on every page load ---- */
+const WALL_COUNT = 20;                    // equations on the wall (10 per side)
+const WALL_MIN_WIDTH = 1240;              // the CSS hides the wall below this width
+const WALL_MAX_LEN = [34, 26, 20, 14];    // progressively shorter replacements for ones that do not fit
+const wallState = { started: false, wall: null, bag: [], used: new Set() };
+
+function wallRandom(a, b) { return a + Math.random() * (b - a); }
+
+function wallTake(maxLen = Infinity) {
+  const { bag, used } = wallState;
+  const fits = bag.filter(e => e.length <= maxLen);
+  const fresh = fits.filter(e => !used.has(e));
+  const src = fresh.length ? fresh : (fits.length ? fits : bag);
+  const tex = src[Math.floor(Math.random() * src.length)];
+  used.add(tex);
+  return tex;
+}
+
+function buildWallEquations() {
+  const wall = wallState.wall;
+  const pool = (window.WALL_EQUATIONS || []).filter(Boolean);
+  if (!wall || !pool.length) return false;
+  wallState.bag = pool;
+  wall.replaceChildren();
+
+  const scales = [0.95, 1.1, 1.2, 1.25, 1.4, 1.6];
+  const firstSide = Math.random() < 0.5 ? 0 : 1;
+  for (let i = 0; i < WALL_COUNT; i++) {
+    const el = document.createElement("span");
+    const y = 4.5 + i * (91 / (WALL_COUNT - 1)) + wallRandom(-1.1, 1.1);   // evenly spread, slightly jittered
+    const s = scales[Math.floor(Math.random() * scales.length)];
+    const f = (v, n = 1) => v.toFixed(n);
+    el.className = "eq " + ((i + firstSide) % 2 ? "r" : "l");
+    const roll = Math.random();
+    if (roll < 0.08) el.classList.add("cut");
+    else if (roll < 0.16) el.classList.add("und");
+    el.style.cssText =
+      "--y:" + f(y) + "%;--r:" + f(wallRandom(-7, 7)) + "deg;--s:" + s +
+      ";--d:" + Math.round(wallRandom(485, 555)) + "px;--o:" + f(wallRandom(0.8, 1.15), 2) +
+      ";--b:" + f(wallRandom(0.4, 0.6)) + "px;--k:" + f(wallRandom(-5, 5)) + "deg;--m:" + Math.round(wallRandom(80, 140)) +
+      "deg;--k1:" + Math.round(wallRandom(25, 45)) + "%;--t:" + f(wallRandom(0, 1), 2) + "s";
+    const tex = wallTake();
+    el.dataset.tex = tex;
+    el.textContent = "$" + tex + "$";
+    wall.append(el);
+  }
+  return true;
+}
+
+/* Swap any equation that is too wide for the margin for a shorter one (before it is revealed). */
+async function fitWallEquations(round = 0) {
+  const wall = wallState.wall;
+  if (!wall || round >= WALL_MAX_LEN.length || !window.MathJax || !MathJax.typesetPromise) return;
+  const half = window.innerWidth / 2;
+  const tooWide = el => el.offsetWidth > (half - parseFloat(el.style.getPropertyValue("--d"))) * 1.3;
+  const bad = [...wall.children].filter(tooWide);
+  if (!bad.length) return;
+  MathJax.typesetClear(bad);
+  for (const el of bad) {
+    const tex = wallTake(WALL_MAX_LEN[round]);
+    el.dataset.tex = tex;
+    el.textContent = "$" + tex + "$";
+  }
+  await MathJax.typesetPromise(bad);
+  return fitWallEquations(round + 1);
+}
+
+function startWallEquations() {
+  if (wallState.started) return;
+  wallState.wall = document.querySelector(".wall-eqs");
+  if (!buildWallEquations()) return;
+  wallState.started = true;
+  (function reveal(n) {
+    if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
+      MathJax.startup.promise
+        .then(() => MathJax.typesetPromise([wallState.wall]))
+        .then(() => fitWallEquations())
+        .then(() => wallState.wall.classList.add("on"))
+        .catch(() => {});
+    } else if (n < 200) setTimeout(() => reveal(n + 1), 50);
+  })(0);
+}
+
+function initWallEquations() {
+  const mq = window.matchMedia("(min-width: " + WALL_MIN_WIDTH + "px)");
+  if (mq.matches) startWallEquations();
+  else mq.addEventListener("change", e => { if (e.matches) startWallEquations(); });
+
+  // If the window is resized, re-check that nothing is now too wide.
+  let timer;
+  window.addEventListener("resize", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { if (wallState.started && mq.matches) fitWallEquations().catch(() => {}); }, 300);
+  });
+}
+
 /* ---- Init ---- */
 document.addEventListener("DOMContentLoaded", () => {
   const lu = document.getElementById("last-updated");
@@ -697,12 +794,7 @@ document.addEventListener("DOMContentLoaded", () => {
   renderPastTalks();
   applyHash();
   typeset(document.body);
-  const ghost = document.querySelector(".wall-eqs");
-  (function reveal(n) {
-    if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
-      MathJax.startup.promise.then(() => MathJax.typesetPromise([ghost])).then(() => ghost.classList.add("on")).catch(() => {});
-    } else if (n < 200) setTimeout(() => reveal(n + 1), 50);
-  })(0);
+  initWallEquations();
 });
 
 document.addEventListener("visibilitychange", () => {
