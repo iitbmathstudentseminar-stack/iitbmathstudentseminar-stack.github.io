@@ -678,7 +678,6 @@ body { position: relative; }
   white-space: nowrap;
   color: rgba(74, 58, 40, .22);
   transform: rotate(var(--r));
-  filter: blur(.5px);
   opacity: 0; transition: opacity 1.4s ease;
   -webkit-mask-image: linear-gradient(100deg, #000 0 35%, rgba(0, 0, 0, .35) 55%, #000 78%);
           mask-image: linear-gradient(100deg, #000 0 35%, rgba(0, 0, 0, .35) 55%, #000 78%);
@@ -787,3 +786,42 @@ body { position: relative; }
 .eq.cut::after { content: ""; position: absolute; left: -3%; right: -3%; top: 54%; height: 2px; background: currentColor; transform: rotate(-3deg); border-radius: 2px; }
 .eq.und::after { content: ""; position: absolute; left: 0; right: 0; bottom: -.1em; border-bottom: 2px solid currentColor; transform: rotate(.9deg); border-radius: 50% / 100%; }
 .eq.box { padding: .2em .4em; outline: 1.5px solid currentColor; outline-offset: 2px; border-radius: 4px; }
+
+
+
+/* ---- Fixed-width past-talks board and page slider (the board itself no longer animates) ---- */
+.sb, .pager { max-width: 860px; margin-left: auto; margin-right: auto; }
+#past-talks-container:focus-visible { outline: 2px solid var(--accent, #f0d060); outline-offset: 6px; }
+
+.pg-mid { flex: 1; min-width: 180px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#pg-slider { width: 100%; height: 24px; margin: 0; background: transparent; cursor: grab; -webkit-appearance: none; appearance: none; }
+#pg-slider:active { cursor: grabbing; }
+#pg-slider:focus-visible { outline: 2px solid var(--accent, #f0d060); outline-offset: 4px; border-radius: 4px; }
+#pg-slider::-webkit-slider-runnable-track {
+  height: 9px; border-radius: 4px;
+  background: linear-gradient(180deg, #cfcfc8 0%, #8f8f89 40%, #5c5c57 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+#pg-slider::-moz-range-track {
+  height: 9px; border-radius: 4px;
+  background: linear-gradient(180deg, #cfcfc8 0%, #8f8f89 40%, #5c5c57 100%);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 255, 255, .5);
+}
+#pg-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 38px; height: 22px; margin-top: -7px; border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, .65);
+  background: linear-gradient(180deg, rgba(255, 238, 205, .25), transparent 50%, rgba(0, 0, 0, .25)), var(--wood-h), var(--wood-base);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 236, 200, .45);
+}
+#pg-slider::-moz-range-thumb {
+  width: 36px; height: 20px; border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, .65);
+  background: linear-gradient(180deg, rgba(255, 238, 205, .25), transparent 50%, rgba(0, 0, 0, .25)), var(--wood-h), var(--wood-base);
+  box-shadow: 0 3px 5px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 236, 200, .45);
+}
+@media (max-width: 560px) { .pager .btn { padding-left: 12px; padding-right: 12px; } .pg-mid { order: -1; flex-basis: 100%; } }
+
+.pager-top { margin-top: 0; margin-bottom: 18px; }
+#pg-status-top { color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
+.talks { overflow-anchor: none; }
