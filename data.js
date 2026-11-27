@@ -1,7 +1,9 @@
-/* Seminar content. Easiest way to edit: open admin.html, load this file, make changes, download the new data.js.
-   You can also edit by hand: dates are ISO 8601 with +05:30, abstracts are lists of paragraphs, LaTeX goes between $...$ (write \\ for each backslash). */
+/* Seminar content. Edit this file to update the archive.
+   start: ISO date/time with IST offset, date-only YYYY-MM-DD, or null when only year is known.
+   For year-only records, supply year. durationMins: null when end time is unknown.
+   Abstracts are arrays of paragraphs; LaTeX goes between $...$. */
 window.SEMINAR_DATA = {
-  "lastUpdated": "2026-11-24",
+  "lastUpdated": "2026-11-27",
   "upcomingTalk": null,
   "pastTalks": [
     {
@@ -206,6 +208,25 @@ window.SEMINAR_DATA = {
       "note": "",
       "slides": null,
       "recording": null
+    },
+    {
+      "id": "2026-04-15-samiun-ali-molla",
+      "start": "2026-04-15T14:00:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Samiun Ali Molla",
+        "affiliation": "IIT Bombay"
+      },
+      "topic": "Analysis & PDEs",
+      "title": "Free Boundary methods and scattering phenomena",
+      "abstract": [
+        "The seminar examines Schrödinger-type equations with localized potentials through a free-boundary formulation, using unique continuation and approximation to discuss existence of nontrivial solutions and connections with the work of Mikko Salo and Henrik Shahgholian."
+      ],
+      "note": "Abstract summary based on the departmental calendar. Host: Suman Kumar Sahoo.",
+      "slides": null,
+      "recording": null,
+      "source": "https://www.math.iitb.ac.in/webcal/view_entry.php?date=20260415&id=1989"
     },
     {
       "id": "2026-04-02-rajendra-meena",
@@ -1302,6 +1323,329 @@ window.SEMINAR_DATA = {
       "note": "",
       "slides": null,
       "recording": null
+    },
+    {
+      "id": "2023-11-02-omkar-javadekar",
+      "start": "2023-11-02T16:00:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Omkar Javadekar",
+        "affiliation": ""
+      },
+      "topic": "Commutative Algebra",
+      "title": "Kaplansky's Theorem for Projective Modules",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 41,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-10-20-parvez-rasul",
+      "start": "2023-10-20T14:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Parvez Rasul",
+        "affiliation": ""
+      },
+      "topic": "Algebraic Geometry",
+      "title": "The first link between (Commutative) Algebra and Geometry: Part 2",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 40,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-10-13-parvez-rasul",
+      "start": "2023-10-13T16:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Parvez Rasul",
+        "affiliation": ""
+      },
+      "topic": "Algebraic Geometry",
+      "title": "The first link between (Commutative) Algebra and Geometry: Part 1",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 39,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-10-06-sai-krishna-p-m-s",
+      "start": "2023-10-06T17:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Sai Krishna P M S",
+        "affiliation": ""
+      },
+      "topic": "Algebra",
+      "title": "Dual basis of a projective module",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 38,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-09-21-priyanka-magar",
+      "start": "2023-09-21T16:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Priyanka Magar",
+        "affiliation": ""
+      },
+      "topic": "Topology",
+      "title": "Simplicial sets arising from categories",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 37,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-09-13-sai-krishna-p-m-s",
+      "start": "2023-09-13T14:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Sai Krishna P M S",
+        "affiliation": ""
+      },
+      "topic": "Commutative Algebra",
+      "title": "On the height of prime ideals in polynomial rings: Part I",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 36,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-09-08-omkar-javadekar",
+      "start": "2023-09-08T14:00:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Omkar Javadekar",
+        "affiliation": ""
+      },
+      "topic": "Commutative Algebra",
+      "title": "Real powers of monomial ideals",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 35,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-09-01-shantanu-nene",
+      "start": "2023-09-01T16:00:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Shantanu Nene",
+        "affiliation": ""
+      },
+      "topic": "Geometry & Topology",
+      "title": "Morse Theory and Applications",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 34,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-08-24-akash-yadav",
+      "start": "2023-08-24T15:30:00+05:30",
+      "durationMins": 90,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Akash Yadav",
+        "affiliation": ""
+      },
+      "topic": "Algebra",
+      "title": "Profinite Groups",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 33,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-08-17-rahul-karki",
+      "start": "2023-08-17T14:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Rahul Karki",
+        "affiliation": ""
+      },
+      "topic": "Graph Theory",
+      "title": "Chip-Firing Game on Graphs",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 32,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-08-11-brahadeesh-sankarnarayanan",
+      "start": "2023-08-11T16:00:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Brahadeesh Sankarnarayanan",
+        "affiliation": ""
+      },
+      "topic": "Combinatorics",
+      "title": "How many orientations does a point have?",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 31,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-08-04-kiran-kumar",
+      "start": "2023-08-04T14:00:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Kiran Kumar",
+        "affiliation": ""
+      },
+      "topic": "Graph Theory",
+      "title": "Spectrum of Random Graphs",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 30,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-07-28-brahadeesh-sankarnarayanan",
+      "start": "2023-07-28T14:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Brahadeesh Sankarnarayanan",
+        "affiliation": ""
+      },
+      "topic": "Combinatorics",
+      "title": "The Lindström–Gessel–Viennot lemma: Part II",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 29,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-07-19-brahadeesh-sankarnarayanan",
+      "start": "2023-07-19T14:30:00+05:30",
+      "durationMins": 60,
+      "venue": "Ramanujan Hall",
+      "speaker": {
+        "name": "Brahadeesh Sankarnarayanan",
+        "affiliation": ""
+      },
+      "topic": "Combinatorics",
+      "title": "The Lindström–Gessel–Viennot lemma: Part I",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "seminarNumber": 28,
+      "source": "https://sites.google.com/iitb.ac.in/students-seminar-mathiitb/schedule/2023-24-autumn"
+    },
+    {
+      "id": "2023-03-08-deep-makadiya",
+      "start": "2023-03-08",
+      "durationMins": null,
+      "venue": "",
+      "speaker": {
+        "name": "Deep Makadiya",
+        "affiliation": ""
+      },
+      "topic": "Representation Theory",
+      "title": "Representation theory of SL₂(ℂ)",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "source": "https://deepmakadiya25.github.io/news.html"
+    },
+    {
+      "id": "2023-omkar-javadekar-lefschetz",
+      "start": null,
+      "durationMins": null,
+      "venue": "",
+      "speaker": {
+        "name": "Omkar Javadekar",
+        "affiliation": ""
+      },
+      "topic": "Commutative Algebra",
+      "title": "Lefschetz properties",
+      "abstract": [],
+      "note": "",
+      "slides": null,
+      "recording": null,
+      "year": 2023,
+      "source": "https://omkarjavadekar.github.io/academics/"
+    },
+    {
+      "id": "2022-omkar-javadekar-fta-1",
+      "start": null,
+      "durationMins": null,
+      "venue": "",
+      "speaker": {
+        "name": "Omkar Javadekar",
+        "affiliation": ""
+      },
+      "topic": "Algebra",
+      "title": "Two proofs of the Fundamental Theorem of Algebra — I",
+      "abstract": [],
+      "note": "One of a series of two talks; exact date not available.",
+      "slides": null,
+      "recording": null,
+      "year": 2022,
+      "source": "https://omkarjavadekar.github.io/academics/"
+    },
+    {
+      "id": "2022-omkar-javadekar-fta-2",
+      "start": null,
+      "durationMins": null,
+      "venue": "",
+      "speaker": {
+        "name": "Omkar Javadekar",
+        "affiliation": ""
+      },
+      "topic": "Algebra",
+      "title": "Two proofs of the Fundamental Theorem of Algebra — II",
+      "abstract": [],
+      "note": "One of a series of two talks; exact date not available.",
+      "slides": null,
+      "recording": null,
+      "year": 2022,
+      "source": "https://omkarjavadekar.github.io/academics/"
     }
   ],
   "organizers": [

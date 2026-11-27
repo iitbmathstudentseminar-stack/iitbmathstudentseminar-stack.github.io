@@ -600,7 +600,7 @@ footer .wrap {
 
 @media (max-width: 560px) {
   .grid2 { grid-template-columns: 1fr; }
-  nav { gap: 18px; width: 100%; overflow-x: auto; }
+  .site-header nav { gap: 18px; width: 100%; overflow-x: auto; }
   .proposal { padding: 18px; }
   .org { grid-template-columns: 1fr; }
   .org a { grid-column: 1; grid-row: auto; text-align: left; }
@@ -825,3 +825,20 @@ body { position: relative; }
 .pager-top { margin-top: 0; margin-bottom: 18px; }
 #pg-status-top { color: var(--chalk-dim); font-variant-numeric: tabular-nums; }
 .talks { overflow-anchor: none; }
+
+/* Keep long names, formulas and controls inside the chalkboard on narrow screens. */
+.talk-btn > span, .grid2 > div, .org > div { min-width: 0; overflow-wrap: anywhere; }
+.abs { overflow-wrap: anywhere; }
+.abs mjx-container[display="true"] { max-width: 100%; overflow-x: auto; overflow-y: hidden; }
+@media (max-width: 560px) {
+  .pg-mid { min-width: 0; }
+  #archive-count { margin-left: 0; flex-basis: 100%; }
+  .wrap { padding-left: 16px; padding-right: 16px; }
+  #upcoming-card, #no-talk { padding: 18px; }
+}
+@media print {
+  .archive-controls, .sb::before, .sb::after, .sb-panel::before, .sb-panel::after { display: none !important; }
+  .sb-panel { background: #fff !important; box-shadow: none !important; border: 0 !important; }
+  .board-surface, .board-frame, .talk-btn, .talk-btn .d, .talk-btn .t small, .abs, .archive-meta, .archive-note, .lede, .talk-actions a { color: #000 !important; }
+  .talk { break-inside: avoid; }
+}

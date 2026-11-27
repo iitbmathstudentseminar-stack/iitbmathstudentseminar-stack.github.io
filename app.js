@@ -1,15 +1,22 @@
 /* ---- MathJax helper ---- */
-function typeset(elements, attempts = 0) {
-  if (!elements) return;
-  if (attempts > 200) return;
-  const els = Array.isArray(elements) ? elements : [elements];
-  if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
-    MathJax.startup.promise.then(() => {
-      MathJax.typesetPromise(els).catch(() => {});
-    });
-  } else {
-    setTimeout(() => typeset(els, attempts + 1), 50);
+let mathQueue = Promise.resolve();
+function queueMath(fn, attempts = 0) {
+  if (window.MathJax?.startup?.promise) {
+    mathQueue = mathQueue.catch(() => {}).then(() => MathJax.startup.promise).then(fn).catch(() => {});
+    return mathQueue;
   }
+  if (attempts < 200) setTimeout(() => queueMath(fn, attempts + 1), 50);
+  return Promise.resolve();
+}
+function typeset(elements) {
+  const els = Array.isArray(elements) ? elements : [elements];
+  return queueMath(() => {
+    const live = els.filter(el => el && el.isConnected && !el.closest('[hidden]'));
+    if (live.length) return MathJax.typesetPromise(live);
+  });
+}
+function clearMath(elements) {
+  if (window.MathJax?.typesetClear) MathJax.typesetClear(elements);
 }
 
 /* ---- Utilities ---- */
@@ -26,6 +33,10 @@ function formatDisplayDate(iso) {
     timeZone: "Asia/Kolkata"
   });
 }
+function talkYear(t) { return String(t.year || (t.start || "").slice(0, 4)); }
+function talkDateLabel(t) { return t.start ? formatDisplayDate(t.start) : (talkYear(t) || "Date unknown"); }
+function talkSortKey(t) { return t.start || talkYear(t); }
+function hasTime(t) { return typeof t.start === "string" && t.start.includes("T"); }
 function toICSUTC(d) {
   const pad = n => String(n).padStart(2, "0");
   return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate())
@@ -36,16 +47,18 @@ function escapeICS(s) {
     .replace(/\\/g, "\\\\")
     .replace(/,/g, "\\,")
     .replace(/;/g, "\\;")
-    .replace(/\n/g, "\\n");
+    .replace(/\r\n|\r|\n/g, "\\n");
 }
 function foldICS(line) {
-  if (line.length <= 74) return line;
-  const out = [line.slice(0, 74)];
-  let rest = line.slice(74);
-  while (rest.length > 0) {
-    out.push(" " + rest.slice(0, 73));
-    rest = rest.slice(73);
+  const encoder = new TextEncoder();
+  const out = [];
+  let part = "", bytes = 0;
+  for (const ch of line) {
+    const size = encoder.encode(ch).length;
+    if (bytes + size > 75) { out.push(part); part = " "; bytes = 1; }
+    part += ch; bytes += size;
   }
+  out.push(part);
   return out.join("\r\n");
 }
 /* Detect the meeting platform from a URL so we can label the link sensibly. */
@@ -85,6 +98,8 @@ function switchTab(tabId, opts) {
     if (heading) heading.focus({ preventScroll: true });
   }
   firstSwitch = false;
+  const shown = document.getElementById("view-" + tabId);
+  typeset(shown);
 }
 NAV_LINKS.forEach(btn => {
   btn.addEventListener("click", () => switchTab(btn.dataset.tab));
@@ -96,12 +111,12 @@ document.getElementById("brand-link").addEventListener("click", e => {
 
 /* ---- Upcoming talk ---- */
 const TZ = "Asia/Kolkata";
-function talkEnd(t) { return new Date(new Date(t.start).getTime() + t.durationMins * 60000); }
+function talkEnd(t) { return new Date(new Date(t.start).getTime() + (t.durationMins ?? 60) * 60000); }
 
 function renderUpcoming() {
   const t = SEMINAR_DATA.upcomingTalk;
   const card = document.getElementById("upcoming-card");
-  if (!t) { card.hidden = true; document.getElementById("no-talk").hidden = false; return; }
+  if (!t || !hasTime(t) || !Number.isFinite(Date.parse(t.start))) { card.hidden = true; document.getElementById("no-talk").hidden = false; return; }
 
   const start = new Date(t.start), end = talkEnd(t);
   card.dataset.start = start.toISOString();
@@ -122,7 +137,7 @@ function renderUpcoming() {
   dateEl.dateTime = t.start;
   dateEl.textContent = start.toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric", timeZone: TZ });
   const tf = d => d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZone: TZ });
-  document.getElementById("up-time").textContent = tf(start) + " – " + tf(end) + " IST";
+  document.getElementById("up-time").textContent = tf(start) + (t.durationMins == null ? " onwards" : " – " + tf(end)) + " IST";
   document.getElementById("up-venue").textContent = t.venue;
 
   // Online-meeting row + join button (only shown when a meetingLink exists)
@@ -167,7 +182,7 @@ function renderUpcoming() {
     "@type": "Event",
     name: plainTitle,
     startDate: t.start,
-    endDate: end.toISOString(),
+    ...(t.durationMins == null ? {} : {endDate: end.toISOString()}),
     eventStatus: "https://schema.org/EventScheduled",
     location: {
       "@type": "Place",
@@ -193,7 +208,7 @@ function renderUpcoming() {
 function getPastTalks() {
   const list = SEMINAR_DATA.pastTalks.slice();
   const t = SEMINAR_DATA.upcomingTalk;
-  if (t && Date.now() > talkEnd(t).getTime() && !list.some(x => x.id === t.id)) list.push(t);
+  if (t && hasTime(t) && Date.now() >= talkEnd(t).getTime() && !list.some(x => x.id === t.id)) list.push(t);
   return list;
 }
 
@@ -205,9 +220,16 @@ function updateUpcomingState() {
   const start = new Date(card.dataset.start).getTime();
   const end = new Date(card.dataset.end).getTime();
   const now = Date.now();
-  if (now > end) {
+  if (now >= end) {
     card.hidden = true;
     noTalk.hidden = false;
+    if (!card.dataset.archived) {
+      card.dataset.archived = "true";
+      document.getElementById("ld-event")?.remove();
+      document.title = "Mathematics Student Seminar, IIT Bombay";
+      document.querySelector('meta[name="description"]').content = "Student-run mathematics seminar at IIT Bombay. Explore the archive of past seminar announcements.";
+      buildYearOptions(); renderPastTalks();
+    }
   } else {
     card.hidden = false;
     noTalk.hidden = true;
@@ -219,7 +241,7 @@ function updateUpcomingState() {
 /* ---- ICS generation (now includes the meeting link) ---- */
 function buildCalendarLink() {
   const t = SEMINAR_DATA.upcomingTalk;
-  if (!t) return;
+  if (!t || !hasTime(t) || !Number.isFinite(Date.parse(t.start))) return;
   const card = document.getElementById("upcoming-card");
   const start = new Date(t.start);
   const end = talkEnd(t);
@@ -238,7 +260,7 @@ function buildCalendarLink() {
     "UID:" + t.id + "@iitb-math-seminar",
     "DTSTAMP:" + toICSUTC(new Date()),
     "DTSTART:" + toICSUTC(start),
-    "DTEND:" + toICSUTC(end),
+    ...(t.durationMins == null ? [] : ["DTEND:" + toICSUTC(end)]),
     foldICS("SUMMARY:" + escapeICS(plainTitle))
   ];
 
@@ -272,16 +294,14 @@ const pastContainer = document.getElementById("past-talks-container");
 const yearFilter = document.getElementById("year-filter");
 const openTalks = new Set();
 
+function normalizeSearch(value) {
+  return String(value ?? "").normalize("NFKD").replace(/\p{M}/gu, "").toLowerCase();
+}
 function matchesQuery(talk, q) {
-  if (!q) return true;
-  return (
-    talk.speaker.name.toLowerCase().includes(q) ||
-    talk.title.toLowerCase().includes(q) ||
-    (talk.topic || "").toLowerCase().includes(q) ||
-    (talk.venue || "").toLowerCase().includes(q) ||
-    talk.start.includes(q) ||
-    talk.abstract.join(" ").toLowerCase().includes(q)
-  );
+  const text = normalizeSearch([talk.speaker.name, talk.speaker.affiliation, talk.title,
+    talk.topic, talk.venue, talk.start, talkYear(talk), talkDateLabel(talk),
+    talk.seminarNumber, talk.note, ...(talk.abstract || [])].join(" "));
+  return normalizeSearch(q).split(/\s+/).filter(Boolean).every(word => text.includes(word));
 }
 
 function buildTalkRow(talk, expanded) {
@@ -299,8 +319,9 @@ function buildTalkRow(talk, expanded) {
   const d = document.createElement("span");
   d.className = "d";
   const t = document.createElement("time");
-  t.dateTime = talk.start;
-  t.textContent = formatDisplayDate(talk.start);
+  if (talk.start) t.dateTime = talk.start;
+  else if (talkYear(talk)) t.dateTime = talkYear(talk);
+  t.textContent = talkDateLabel(talk);
   d.appendChild(t);
 
   const s = document.createElement("span");
@@ -311,7 +332,7 @@ function buildTalkRow(talk, expanded) {
   title.className = "t";
   title.textContent = talk.title;
   const small = document.createElement("small");
-  small.textContent = [talk.topic, talk.venue].filter(Boolean).join(" · ");
+  small.textContent = [talk.seminarNumber ? "Seminar " + talk.seminarNumber : "", talk.topic, talk.venue].filter(Boolean).join(" · ");
   title.appendChild(small);
 
   const chev = document.createElement("span");
@@ -327,16 +348,16 @@ function buildTalkRow(talk, expanded) {
   const meta = document.createElement("p");
   meta.className = "archive-meta";
   const timeFmt = d => d.toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit", timeZone: TZ});
-  const timeText = timeFmt(new Date(talk.start)) + (talk.durationMins == null ? " onwards" : "–" + timeFmt(talkEnd(talk))) + " IST";
+  const timeText = hasTime(talk) ? timeFmt(new Date(talk.start)) + (talk.durationMins == null ? " onwards" : "–" + timeFmt(talkEnd(talk))) + " IST" : (talk.start ? "Time not recorded" : "Exact date and time not recorded");
   meta.textContent = [timeText, talk.venue, talk.speaker.affiliation].filter(Boolean).join(" · ");
   abs.appendChild(meta);
-  if (talk.note || !talk.abstract.length) {
+  if (talk.note || !(talk.abstract || []).length) {
     const note = document.createElement("p");
     note.className = "archive-note";
-    note.textContent = talk.note || "No abstract was included in the available announcement.";
+    note.textContent = [talk.note, !(talk.abstract || []).length ? "Abstract not available." : ""].filter(Boolean).join(" ");
     abs.appendChild(note);
   }
-  for (const para of talk.abstract) {
+  for (const para of (talk.abstract || [])) {
     const p = document.createElement("p");
     p.textContent = para;
     abs.appendChild(p);
@@ -354,6 +375,11 @@ function buildTalkRow(talk, expanded) {
     a.href = talk.recording; a.textContent = "Recording"; a.rel = "noopener";
     actions.appendChild(a);
   }
+  if (talk.source && /^https?:\/\//i.test(talk.source)) {
+    const a = document.createElement("a");
+    a.href = talk.source; a.textContent = "Source"; a.rel = "noopener noreferrer"; a.target = "_blank";
+    actions.appendChild(a);
+  }
   const permalink = document.createElement("a");
   permalink.href = "#talk-" + talk.id;
   permalink.textContent = "Permalink";
@@ -366,7 +392,7 @@ function buildTalkRow(talk, expanded) {
 }
 
 function toggleTalk(id) {
-  const btn = document.querySelector('[data-talk-id="' + id + '"]');
+  const btn = document.getElementById("row-" + id)?.querySelector(".talk-btn");
   const abs = document.getElementById("talk-abs-" + id);
   if (!btn || !abs) return;
   const isOpen = btn.getAttribute("aria-expanded") === "true";
@@ -401,8 +427,8 @@ let page = 0;
 function getFiltered() {
   const q = (filterInput.value || "").trim().toLowerCase();
   return getPastTalks()
-    .sort((a, b) => new Date(b.start) - new Date(a.start))
-    .filter(t => (!yearFilter.value || t.start.startsWith(yearFilter.value)) && matchesQuery(t, q));
+    .sort((a, b) => talkSortKey(b).localeCompare(talkSortKey(a)))
+    .filter(t => (!yearFilter.value || talkYear(t) === yearFilter.value) && matchesQuery(t, q));
 }
 const pageSize = () => +pageSizeSel.value || 10;
 function pageOfTalk(id) {
@@ -453,25 +479,30 @@ function renderPastTalks() {
   slider.min = 1;
   slider.max = pages;
   slider.value = page + 1;
+  slider.setAttribute("aria-valuetext", pgStatus.textContent);
 
   const panel = buildPanel(list.slice(page * size, page * size + size));
+  clearMath([pastContainer]);
   pastContainer.replaceChildren(panel);
   typeset(panel);
 }
 
-function resetAndRender() { page = 0; renderPastTalks(); }
+function clearTalkHash() {
+  if (window.location.hash.startsWith("#talk-")) history.replaceState(null, "", "#past-talks");
+}
+function resetAndRender() { clearTalkHash(); page = 0; renderPastTalks(); }
 /* change page without moving the scroll position */
 function keepScroll(fn) {
   const y = window.scrollY;
   fn();
   window.scrollTo({ top: y, behavior: "instant" });
 }
-function turnPage(dir) { keepScroll(() => { page += dir; renderPastTalks(); }); }
+function turnPage(dir) { clearTalkHash(); keepScroll(() => { page += dir; renderPastTalks(); }); }
 pgPrev.addEventListener("click", () => turnPage(-1));
 pgNext.addEventListener("click", () => turnPage(1));
 pgPrevTop.addEventListener("click", () => turnPage(-1));
 pgNextTop.addEventListener("click", () => turnPage(1));
-slider.addEventListener("input", () => keepScroll(() => { page = +slider.value - 1; renderPastTalks(); }));
+slider.addEventListener("input", () => { clearTalkHash(); keepScroll(() => { page = +slider.value - 1; renderPastTalks(); }); });
 pastContainer.addEventListener("keydown", e => {
   if (e.target !== pastContainer) return;
   if (e.key === "ArrowRight") { e.preventDefault(); turnPage(1); }
@@ -485,8 +516,10 @@ yearFilter.addEventListener("change", resetAndRender);
 /* ---- Hash handling ---- */
 function applyHash() {
   const raw = window.location.hash.replace(/^#/, "");
+  if (raw === "main") return; // allow the accessibility skip link to work on either tab
   if (raw.indexOf("talk-") === 0) {
     const id = raw.slice(5);
+    if (!getPastTalks().some(t => t.id === id)) { switchTab("past-talks"); return; }
     switchTab("past-talks", { updateHash: false });
     if (!document.getElementById("talk-abs-" + id)) {
       filterInput.value = "";
@@ -495,7 +528,7 @@ function applyHash() {
       renderPastTalks();
     }
     openTalks.add(id);
-    const btn = document.querySelector('[data-talk-id="' + id + '"]');
+    const btn = document.getElementById("row-" + id)?.querySelector(".talk-btn");
     const abs = document.getElementById("talk-abs-" + id);
     if (btn && abs) {
       btn.setAttribute("aria-expanded", "true");
@@ -562,6 +595,7 @@ function closeProposalBox(opts) {
   statusBox.hidden = true;
   if (opts.reset) {
     form.reset();
+    for (const el of form.elements) el.setCustomValidity?.("");
     lastFormattedProposal = "";
     const ta = document.getElementById("proposal-fallback");
     if (ta) ta.hidden = true;
@@ -579,14 +613,15 @@ document.getElementById("cancel-proposal-btn").addEventListener("click", () => {
 });
 
 function refreshDateMin() {
-  const today = new Date();
-  const pad = n => String(n).padStart(2, "0");
-  dateInput.min = today.getFullYear() + "-" + pad(today.getMonth() + 1) + "-" + pad(today.getDate());
+  const parts = new Intl.DateTimeFormat("en-GB", {timeZone: TZ, year:"numeric",month:"2-digit",day:"2-digit"}).formatToParts(new Date());
+  const val = k => parts.find(p => p.type === k).value;
+  dateInput.min = val("year") + "-" + val("month") + "-" + val("day");
 }
 refreshDateMin();
 dateInput.addEventListener("input", () => dateInput.setCustomValidity(""));
 
-form.addEventListener("input", () => {
+form.addEventListener("input", event => {
+  if (event.target.setCustomValidity) event.target.setCustomValidity("");
   if (statusBox && !statusBox.hidden) {
     lastFormattedProposal = "";
     statusBox.hidden = true;
@@ -597,6 +632,11 @@ form.addEventListener("input", () => {
 
 form.addEventListener("submit", event => {
   event.preventDefault();
+  refreshDateMin();
+  for (const id of ["sp-name", "sp-title", "sp-abstract"]) {
+    const el = document.getElementById(id);
+    el.setCustomValidity(el.value.trim() ? "" : "Please enter a value.");
+  }
   if (!form.reportValidity()) return;
 
   const name = document.getElementById("sp-name").value.trim();
@@ -659,6 +699,7 @@ document.getElementById("copy-proposal-btn").addEventListener("click", async () 
 
 document.getElementById("reset-proposal-btn").addEventListener("click", () => {
   form.reset();
+  for (const el of form.elements) el.setCustomValidity?.("");
   lastFormattedProposal = "";
   statusBox.hidden = true;
   dateInput.setCustomValidity("");
@@ -667,8 +708,10 @@ document.getElementById("reset-proposal-btn").addEventListener("click", () => {
 });
 
 function buildYearOptions() {
-  const years = [...new Set(getPastTalks().map(t => t.start.slice(0, 4)))].sort().reverse();
+  const previous = yearFilter.value;
+  const years = [...new Set(getPastTalks().map(talkYear).filter(Boolean))].sort().reverse();
   yearFilter.replaceChildren(new Option("All years", ""), ...years.map(y => new Option(y, y)));
+  if (years.includes(previous)) yearFilter.value = previous;
 }
 
 
@@ -726,7 +769,7 @@ async function fitWallEquations(round = 0) {
   const wall = wallState.wall;
   if (!wall || round >= WALL_MAX_LEN.length || !window.MathJax || !MathJax.typesetPromise) return;
   const half = window.innerWidth / 2;
-  const tooWide = el => el.offsetWidth > (half - parseFloat(el.style.getPropertyValue("--d"))) * 1.3;
+  const tooWide = el => el.getBoundingClientRect().width > Math.max(0, half - parseFloat(el.style.getPropertyValue("--d")) - 8);
   const bad = [...wall.children].filter(tooWide);
   if (!bad.length) return;
   MathJax.typesetClear(bad);
@@ -747,8 +790,7 @@ function startWallEquations() {
   (function reveal(n) {
     if (window.MathJax && MathJax.startup && MathJax.startup.promise) {
       MathJax.startup.promise
-        .then(() => MathJax.typesetPromise([wallState.wall]))
-        .then(() => fitWallEquations())
+        .then(() => queueMath(async () => { await MathJax.typesetPromise([wallState.wall]); await fitWallEquations(); }))
         .then(() => wallState.wall.classList.add("on"))
         .catch(() => {});
     } else if (n < 200) setTimeout(() => reveal(n + 1), 50);
@@ -764,7 +806,7 @@ function initWallEquations() {
   let timer;
   window.addEventListener("resize", () => {
     clearTimeout(timer);
-    timer = setTimeout(() => { if (wallState.started && mq.matches) fitWallEquations().catch(() => {}); }, 300);
+    timer = setTimeout(() => { if (wallState.started && mq.matches) queueMath(() => fitWallEquations()); }, 300);
   });
 }
 
@@ -782,8 +824,8 @@ document.addEventListener("DOMContentLoaded", () => {
   buildYearOptions();
   renderPastTalks();
   applyHash();
-  typeset(document.body);
   initWallEquations();
+  setInterval(updateUpcomingState, 30000);
 });
 
 document.addEventListener("visibilitychange", () => {

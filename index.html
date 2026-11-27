@@ -72,7 +72,8 @@
       </div>
     </header>
 
-    <main id="main" class="wrap">
+    <main id="main" class="wrap" tabindex="-1">
+      <noscript>Please enable JavaScript to view the seminar archive and contact links.</noscript>
 
       <section id="view-home" class="tab-section" aria-labelledby="home-h1">
         <div class="page-head">
@@ -106,7 +107,7 @@
 
         <div id="no-talk" hidden>
           <strong>No talk is currently scheduled.</strong>
-          No upcoming announcement is included in the available records. Please check back for the next seminar.
+          No upcoming announcement is currently listed. Please check back for the next seminar.
         </div>
 
         <div class="join">
@@ -179,11 +180,11 @@
       <section id="view-past-talks" class="tab-section" aria-labelledby="past-h1" hidden>
         <div class="page-head sub-head">
           <h1 id="past-h1" tabindex="-1">Past Talks</h1>
-          <p class="lede">Archive of announced seminar sessions, based on the available email records. Select any entry for its details and abstract, where available.</p>
+          <p class="lede">Archive of announced seminar sessions, based on available announcements, historical schedules and speaker records. Select any entry for its details and abstract, where available.</p>
         </div>
 
-        <label for="talk-filter" class="visually-hidden">Filter past talks by speaker, title, topic, or abstract</label>
-        <input id="talk-filter" type="search" autocomplete="off" placeholder="Filter by speaker, title, or topic…" />
+        <label for="talk-filter" class="visually-hidden">Filter past talks by speaker, title, date, topic, or abstract</label>
+        <input id="talk-filter" type="search" autocomplete="off" placeholder="Filter by speaker, title, date, or topic…" />
 
         <div class="archive-controls">
           <label for="year-filter">Year</label>
